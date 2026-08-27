@@ -1,0 +1,98 @@
+CREATE DATABASE IF NOT EXISTS seller_inventory_db;
+USE seller_inventory_db;
+CREATE TABLE sellers (
+    seller_id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE inventory (
+    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id INT NOT NULL,
+    product_id INT NOT NULL,
+    stock_quantity INT NOT NULL DEFAULT 0,
+    status ENUM('Available','Unavailable') DEFAULT 'Available',
+
+    FOREIGN KEY (seller_id)
+    REFERENCES sellers(seller_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+    FOREIGN KEY (product_id)
+    REFERENCES products(product_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+INSERT INTO sellers (seller_name,email,phone)
+VALUES
+('ABC Electronics','abc@gmail.com','9876543210'),
+('Home Store','home@gmail.com','9876543211'),
+('Book World','book@gmail.com','9876543212');
+
+SELECT * FROM sellers;
+
+INSERT INTO products (product_name,price)
+VALUES
+('Bluetooth Headphones',59.99),
+('Smart TV',499.00),
+('Microwave Oven',85.00),
+('Office Chair',150.00),
+('SQL Book',29.99);
+
+SELECT * FROM products;
+
+INSERT INTO inventory
+(seller_id,product_id,stock_quantity,status)
+VALUES
+(1,1,120,'Available'),
+(1,2,20,'Available'),
+(2,3,0,'Unavailable'),
+(2,4,35,'Available'),
+(3,5,150,'Available');
+
+SELECT * FROM inventory;
+UPDATE inventory
+SET stock_quantity=50,
+status='Available'
+WHERE inventory_id=3;
+
+UPDATE inventory
+SET status='Unavailable'
+WHERE inventory_id=2;
+
+DELETE FROM inventory
+WHERE inventory_id=5;
+
+SELECT
+s.seller_name,
+p.product_name,
+p.price,
+i.stock_quantity,
+i.status
+FROM inventory i
+JOIN sellers s ON i.seller_id=s.seller_id
+JOIN products p ON i.product_id=p.product_id
+ORDER BY s.seller_name;
+SELECT
+p.product_name,
+s.seller_name,
+i.stock_quantity,
+i.status
+FROM inventory i
+JOIN sellers s ON i.seller_id=s.seller_id
+JOIN products p ON i.product_id=p.product_id
+ORDER BY i.status;
+
+SELECT
+status,
+COUNT(*) AS total_products
+FROM inventory
+GROUP BY status;
