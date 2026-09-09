@@ -1,1 +1,182 @@
 
+
+USE inventory_db;
+
+SELECT * FROM reviews;
+
+SELECT
+    o.order_id,
+    o.customer_id,
+    od.product_id,
+    od.order_detail_id
+FROM orders o
+JOIN order_details od
+ON o.order_id = od.order_id
+ORDER BY od.order_detail_id;
+
+INSERT INTO reviews
+(customer_id, product_id, rating, review_text, review_date)
+SELECT
+    o.customer_id,
+    od.product_id,
+    CASE MOD(od.order_detail_id, 5)
+        WHEN 0 THEN 5
+        WHEN 1 THEN 5
+        WHEN 2 THEN 4
+        WHEN 3 THEN 3
+        ELSE 4
+    END AS rating,
+    CASE MOD(od.order_detail_id, 5)
+        WHEN 0 THEN 'Excellent product quality'
+        WHEN 1 THEN 'Very good product and worth the price'
+        WHEN 2 THEN 'Good product with useful features'
+        WHEN 3 THEN 'Average product but can be improved'
+        ELSE 'Good quality and satisfied with the purchase'
+    END AS review_text,
+    DATE_ADD('2026-08-25', INTERVAL od.order_detail_id DAY)
+FROM orders o
+JOIN order_details od
+ON o.order_id = od.order_id
+ORDER BY od.order_detail_id
+LIMIT 7;
+
+SELECT * FROM reviews;
+
+SELECT *
+FROM reviews
+ORDER BY review_date DESC;
+
+SELECT
+    p.product_name,
+    r.rating,
+    r.review_text,
+    r.review_date
+FROM reviews r
+JOIN products p
+ON r.product_id = p.product_id
+ORDER BY r.review_date DESC;
+
+SELECT
+    c.customer_name,
+    p.product_name,
+    r.rating,
+    r.review_text,
+    r.review_date
+FROM reviews r
+JOIN customers c
+ON r.customer_id = c.customer_id
+JOIN products p
+ON r.product_id = p.product_id
+ORDER BY c.customer_name;
+
+SELECT
+    c.customer_name,
+    p.product_name,
+    r.rating,
+    r.review_text,
+    r.review_date
+FROM reviews r
+JOIN customers c
+ON r.customer_id = c.customer_id
+JOIN products p
+ON r.product_id = p.product_id
+ORDER BY r.review_date DESC
+LIMIT 5;
+
+SELECT
+    p.product_name,
+    r.rating,
+    r.review_text
+FROM reviews r
+JOIN products p
+ON r.product_id = p.product_id
+WHERE r.rating > 4
+ORDER BY r.rating DESC;
+
+SELECT
+    p.product_id,
+    p.product_name,
+    ROUND(AVG(r.rating), 2) AS average_rating
+FROM products p
+JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY average_rating DESC;
+
+SELECT
+    p.product_id,
+    p.product_name,
+    COUNT(r.review_id) AS number_of_reviews
+FROM products p
+LEFT JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY number_of_reviews DESC;
+SELECT
+    p.product_name,
+    ROUND(AVG(r.rating), 2) AS average_rating
+FROM products p
+JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+HAVING AVG(r.rating) = (
+    SELECT MAX(avg_rating)
+    FROM (
+        SELECT AVG(rating) AS avg_rating
+        FROM reviews
+        GROUP BY product_id
+    ) AS rating_summary
+);
+
+SELECT
+    p.product_name,
+    ROUND(AVG(r.rating), 2) AS average_rating
+FROM products p
+JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+HAVING AVG(r.rating) > 4
+ORDER BY average_rating DESC;
+
+UPDATE reviews
+SET review_text = 'Excellent product, highly recommended'
+WHERE review_id = 1;
+
+SELECT * FROM reviews
+WHERE review_id = 1;
+
+DELETE FROM reviews
+WHERE review_id = 1;
+
+SELECT
+    p.product_name,
+    COUNT(r.review_id) AS number_of_reviews,
+    ROUND(AVG(r.rating), 2) AS average_rating
+FROM products p
+LEFT JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY average_rating DESC;
+
+SELECT
+    p.product_name,
+    COUNT(r.review_id) AS total_reviews,
+    ROUND(AVG(r.rating), 2) AS average_rating,
+    CASE
+        WHEN AVG(r.rating) >= 4.5 THEN 'Highly Rated'
+        WHEN AVG(r.rating) >= 3 THEN 'Good'
+        ELSE 'Requires Improvement'
+    END AS product_status
+FROM products p
+LEFT JOIN reviews r
+ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY average_rating DESC;
+
+
+SELECT
+    rating,
+    COUNT(*) AS total_ratings
+FROM reviews
+GROUP BY rating
+ORDER BY rating DESC;
