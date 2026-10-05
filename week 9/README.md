@@ -28,7 +28,7 @@ This report shows the overall sales information, including total orders, total r
 
 ### Output:
 
-<img width="596" height="90" alt="image" src="https://github.com/user-attachments/assets/73adfb73-8dd9-411c-b759-4949c12fbb09" />
+<img width="1102" height="220" alt="image" src="https://github.com/user-attachments/assets/c026be97-6050-40d8-bb9a-66a1eb8bc2cd" />
 
 
 ---
@@ -39,7 +39,7 @@ This report shows customer purchase details such as customer name, number of ord
 
 ### Output:
 
-<img width="590" height="162" alt="image" src="https://github.com/user-attachments/assets/d87dd437-8581-47ba-9ba1-f0dddf2b8afa" />
+<img width="1217" height="272" alt="image" src="https://github.com/user-attachments/assets/5c8c20b9-4b29-4f5a-965d-19ebbecf64f4" />
 
 
 ---
@@ -50,7 +50,7 @@ This report shows product performance based on the total quantity sold and reven
 
 ### Output:
 
-<img width="510" height="162" alt="image" src="https://github.com/user-attachments/assets/d8a72459-6ab7-47da-a0a3-d2dcc2137e4e" />
+<img width="1166" height="276" alt="image" src="https://github.com/user-attachments/assets/914cb05f-d09a-4422-b8fe-32748526822d" />
 
 
 ---
@@ -61,7 +61,8 @@ This report shows sales information for each product category. It helps to compa
 
 ### Output:
 
-<img width="410" height="81" alt="image" src="https://github.com/user-attachments/assets/ee7190d5-b4c0-4853-bb09-e9f07a9ec5d5" />
+<img width="1183" height="267" alt="image" src="https://github.com/user-attachments/assets/e46eadc4-ac4c-4640-ae77-7d6a47188831" />
+
 
 
 ---
