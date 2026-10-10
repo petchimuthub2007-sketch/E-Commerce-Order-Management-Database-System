@@ -1,0 +1,386 @@
+USE inventory_db;
+-- Find products priced higher than the global average
+
+SELECT
+    product_name,
+    price
+FROM products
+WHERE price > (
+    SELECT AVG(price)
+    FROM products
+);
+
+
+-- Find customers who placed an order above 100
+
+SELECT
+    customer_id,
+    customer_name
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM orders
+    WHERE total_amount > 100
+);
+
+-- Find average spending across all customers
+
+SELECT
+    ROUND(AVG(customer_total), 2) AS average_customer_spend
+FROM (
+    SELECT
+        customer_id,
+        SUM(total_amount) AS customer_total
+    FROM orders
+    GROUP BY customer_id
+) AS spending_table;
+
+
+-- Display expensive products with category name
+
+SELECT
+    p.product_name,
+    c.category_name,
+    p.price
+FROM products p
+INNER JOIN categories c
+ON p.category_id = c.category_id
+WHERE p.price > (
+    SELECT AVG(price)
+    FROM products
+)
+ORDER BY p.price DESC;
+
+-- Find the most expensive product in each category
+
+SELECT
+    c.category_name,
+    p.product_name,
+    p.price
+FROM products p
+INNER JOIN categories c
+ON p.category_id = c.category_id
+WHERE p.price = (
+    SELECT MAX(p2.price)
+    FROM products p2
+    WHERE p2.category_id = p.category_id
+);
+
+SELECT
+    c.customer_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+HAVING SUM(o.total_amount) = (
+    SELECT MAX(total_sales)
+    FROM (
+        SELECT
+            SUM(total_amount) AS total_sales
+        FROM orders
+        GROUP BY customer_id
+    ) AS sales
+);
+
+SELECT
+    c.customer_name,
+    COUNT(o.order_id) AS total_orders
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+HAVING COUNT(o.order_id) = (
+    SELECT MAX(order_count)
+    FROM (
+        SELECT
+            customer_id,
+            COUNT(order_id) AS order_count
+        FROM orders
+        GROUP BY customer_id
+    ) AS order_summary
+);
+
+SELECT
+    c.customer_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+HAVING SUM(o.total_amount) > (
+    SELECT AVG(customer_total)
+    FROM (
+        SELECT
+            customer_id,
+            SUM(total_amount) AS customer_total
+        FROM orders
+        GROUP BY customer_id
+    ) AS customer_spending
+)
+ORDER BY total_spending DESC;
+
+SELECT
+    c.customer_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_spending DESC
+LIMIT 5;
+
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS total_quantity_sold,
+    SUM(od.quantity * od.unit_price) AS total_revenue
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY total_quantity_sold DESC
+LIMIT 1;
+
+SELECT
+    c.customer_name,
+    SUM(o.total_amount) AS total_spending
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+HAVING SUM(o.total_amount) > (
+    SELECT AVG(customer_total)
+    FROM (
+        SELECT
+            customer_id,
+            SUM(total_amount) AS customer_total
+        FROM orders
+        GROUP BY customer_id
+    ) AS spending
+)
+ORDER BY total_spending DESC;
+
+SELECT
+    c.category_name,
+    SUM(od.quantity * od.unit_price) AS total_revenue
+FROM categories c
+JOIN products p
+ON c.category_id = p.category_id
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY c.category_id, c.category_name
+ORDER BY total_revenue DESC
+LIMIT 1;
+
+SELECT
+    c.category_name,
+    SUM(od.quantity) AS products_sold
+FROM categories c
+JOIN products p
+ON c.category_id = p.category_id
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY c.category_id, c.category_name
+ORDER BY products_sold DESC;
+
+SELECT
+    c.category_name,
+    ROUND(AVG(p.price), 2) AS average_product_price
+FROM categories c
+JOIN products p
+ON c.category_id = p.category_id
+GROUP BY c.category_id, c.category_name
+ORDER BY average_product_price DESC;
+
+SELECT
+    c.customer_name,
+    COUNT(o.order_id) AS number_of_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_purchase_amount
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_purchase_amount DESC;
+
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS total_quantity_purchased
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY total_quantity_purchased DESC
+LIMIT 1;
+
+SELECT
+    p.product_name,
+    c.category_name,
+    p.price,
+    p.stock_quantity
+FROM products p
+JOIN categories c
+ON p.category_id = c.category_id
+WHERE p.price > (
+    SELECT AVG(price)
+    FROM products
+)
+ORDER BY p.price DESC;
+
+SELECT
+    p.product_name,
+    c.category_name,
+    p.price,
+    p.stock_quantity,
+    CASE
+        WHEN p.stock_quantity > 0 THEN 'Available'
+        ELSE 'Out of Stock'
+    END AS stock_availability
+FROM products p
+JOIN categories c
+ON p.category_id = c.category_id
+WHERE p.price > (
+    SELECT AVG(price)
+    FROM products
+)
+ORDER BY p.price DESC;
+
+SELECT
+    c.customer_name,
+    COUNT(o.order_id) AS total_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_spending,
+    CASE
+        WHEN COALESCE(SUM(o.total_amount), 0) >= 1000
+            THEN 'Premium Customer'
+        WHEN COALESCE(SUM(o.total_amount), 0) >= 500
+            THEN 'High Value Customer'
+        WHEN COALESCE(SUM(o.total_amount), 0) > 0
+            THEN 'Regular Customer'
+        ELSE 'No Purchase'
+    END AS customer_category
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_spending DESC;
+
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS quantity_sold,
+    SUM(od.quantity * od.unit_price) AS revenue
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY revenue DESC;
+
+SELECT
+    c.category_name,
+    SUM(od.quantity * od.unit_price) AS category_revenue
+FROM categories c
+JOIN products p
+ON c.category_id = p.category_id
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY c.category_id, c.category_name
+ORDER BY category_revenue DESC;
+
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS quantity_sold,
+    SUM(od.quantity * od.unit_price) AS revenue
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY quantity_sold DESC
+LIMIT 5;
+
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS quantity_sold,
+    SUM(od.quantity * od.unit_price) AS revenue
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+HAVING SUM(od.quantity * od.unit_price) > (
+    SELECT AVG(product_revenue)
+    FROM (
+        SELECT
+            SUM(od2.quantity * od2.unit_price) AS product_revenue
+        FROM order_details od2
+        GROUP BY od2.product_id
+    ) AS product_sales
+)
+ORDER BY revenue DESC;
+
+SELECT
+    p.product_name,
+    COALESCE(SUM(od.quantity), 0) AS quantity_sold,
+    COALESCE(SUM(od.quantity * od.unit_price), 0) AS revenue
+FROM products p
+LEFT JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY revenue ASC;
+
+SELECT
+    p.product_name,
+    c.category_name,
+    p.price,
+    p.stock_quantity
+FROM products p
+JOIN categories c
+ON p.category_id = c.category_id
+WHERE p.price > (
+    SELECT AVG(price)
+    FROM products
+)
+ORDER BY p.price DESC;
+
+SELECT
+    c.customer_name,
+    COUNT(o.order_id) AS total_orders,
+    COALESCE(SUM(o.total_amount), 0) AS total_spending,
+    CASE
+        WHEN COALESCE(SUM(o.total_amount), 0) >= 1000
+            THEN 'Premium'
+        WHEN COALESCE(SUM(o.total_amount), 0) >= 500
+            THEN 'High Value'
+        ELSE 'Regular'
+    END AS customer_category
+FROM customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.customer_name
+ORDER BY total_spending DESC;
+
+SELECT
+    p.product_name,
+    c.category_name,
+    SUM(od.quantity) AS quantity_sold,
+    SUM(od.quantity * od.unit_price) AS revenue
+FROM products p
+JOIN categories c
+ON p.category_id = c.category_id
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name, c.category_name
+ORDER BY revenue DESC;
+SELECT
+    p.product_name,
+    SUM(od.quantity) AS quantity_sold,
+    SUM(od.quantity * od.unit_price) AS revenue,
+    CASE
+        WHEN SUM(od.quantity * od.unit_price) >= 500
+            THEN 'High Performing'
+        WHEN SUM(od.quantity * od.unit_price) >= 100
+            THEN 'Medium Performing'
+        ELSE 'Low Performing'
+    END AS performance
+FROM products p
+JOIN order_details od
+ON p.product_id = od.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY revenue DESC;
+
